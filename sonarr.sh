@@ -22,6 +22,7 @@ get_banner_image()
     >&2 echo "Banner image not found"
     exit 2
   fi
+  # If "sonarr_series_title" is null, assign the value of the "title" from JSON response
   if [[ -z "$sonarr_series_title" ]]; then
     ntfy_title=$(jq -r '.title' "$response_file")
   fi
