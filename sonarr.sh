@@ -5,7 +5,7 @@ DIR=$(dirname "$0")
 . "$DIR/.env"
 
 # Function to retrieve the banner image for a series from Sonarr API. Parameters are taken from env file
-# Outputs series banner_image URL for use in ntfy_post_data()  
+# Outputs the series banner image URL for use in ntfy_post_data()  
 get_banner_image()
 {
   headers_file=$(mktemp)
@@ -22,6 +22,10 @@ get_banner_image()
     >&2 echo "Banner image not found"
     exit 2
   fi
+  if [[ -z "$sonarr_series_title" ]]; then
+    ntfy_title=$(jq -r '.title' "$response_file")
+  fi
+
   rm "$headers_file" "$response_file"
 }
 
@@ -65,6 +69,7 @@ fi
 # If the value of "sonarr_eventtype" is "Download", include additional fields for attaching a banner image and a link to the TVDB website.
 # Otherwise, generate JSON data without these additional fields.
 if [ "$sonarr_eventtype" == "Download" ]; then
+
 ntfy_post_data()
 {
   cat <<EOF
@@ -108,6 +113,7 @@ response=$(curl -s -o /dev/null -w "%{http_code}" -H "Accept: application/json" 
 
 # If the response code is 200, the notification was sent successfully.
 # Otherwise, print an error message and exit with code 4.
+echo $(ntfy_post_data)
 if [[ "$response" -eq 200 ]]; then
   echo "Notification sent successfully"
 else
